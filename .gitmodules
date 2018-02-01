@@ -1,0 +1,3 @@
+[submodule "NMEA2000"]
+	path = NMEA2000
+	url = https://github.com/jonasseglare/NMEA2000.git

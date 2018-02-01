@@ -1,0 +1,21 @@
+{
+  "name": "node-nmea2000",
+  "version": "1.0.0",
+  "description": "Interface to ttlappalainen's NMEA2000 library",
+  "main": "index.js",
+  "scripts": {
+    "install": "cmake-js compile",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "NMEA2000"
+  ],
+  "author": "Julien Pilet",
+  "license": "ISC",
+  "dependencies": {
+    "bindings": "^1.3.0",
+    "cmake-js": "2.0.0",
+    "nan": "2.2.0",
+    "socketcan": "^2.2.0"
+  }
+}
