@@ -119,6 +119,13 @@ NAN_METHOD(NodeNmea2000::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+NodeNmea2000::Packet::Packet(
+    unsigned long id, const char* data, unsigned char length) {
+  this->id = id;
+  this->length = length;
+  memcpy(this->data, data, length);
+}
+
 NAN_METHOD(NodeNmea2000::pushCanFrame) {
   NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
 
@@ -127,16 +134,15 @@ NAN_METHOD(NodeNmea2000::pushCanFrame) {
 
   v8::Local<v8::Object> obj =  info[0]->ToObject();
 
-  Packet packet;
-  packet.id = obj->Get(SYMBOL("id"))->Uint32Value();
-
   v8::Local<v8::Value> dataArg = obj->Get(SYMBOL("data"));
   CHECK_CONDITION(node::Buffer::HasInstance(dataArg), "Data field must be a Buffer");
 
-  packet.length = node::Buffer::Length(dataArg->ToObject());
-  memcpy(packet.data, node::Buffer::Data(dataArg->ToObject()), packet.length);
+  zis->packets_.emplace_back(
+    Packet(
+      obj->Get(SYMBOL("id"))->Uint32Value(),
+      node::Buffer::Data(dataArg->ToObject()),
+      node::Buffer::Length(dataArg->ToObject())));
 
-  zis->packets_.push_back(packet);
   zis->ParseMessages();
 }
 

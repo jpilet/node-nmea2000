@@ -26,6 +26,14 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
   bool sendFrame(unsigned long id, unsigned char len,
                  const unsigned char *buf, bool wait_sent);
 
+  struct Packet {
+    unsigned long id;
+    unsigned char data[8];
+    unsigned char length;
+
+    Packet(unsigned long id, const char* data, unsigned char length);
+  };
+
  protected:
   // Virtual functions for different interfaces.
   bool CANSendFrame(unsigned long id, unsigned char len,
@@ -34,12 +42,6 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
   bool CANGetFrame(unsigned long &id,
                            unsigned char &len, unsigned char *buf) override;
  private:
-
-  struct Packet {
-    unsigned long id;
-    unsigned char data[8];
-    unsigned char length;
-  };
 
   static Nan::Persistent<v8::Function> constructor;
 
