@@ -1,15 +1,15 @@
 #include "main.h"
 
-bool Nmea2000::CANSendFrame(unsigned long id, unsigned char len,
+bool NodeNmea2000::CANSendFrame(unsigned long id, unsigned char len,
                             const unsigned char *buf, bool wait_sent) {
-  return nodeNmea2000_->sendFrame(id, len, buf, wait_sent);
+  return sendFrame(id, len, buf, wait_sent);
 }
 
-bool Nmea2000::CANOpen() {
+bool NodeNmea2000::CANOpen() {
   return true;
 }
 
-bool Nmea2000::CANGetFrame(unsigned long &id,
+bool NodeNmea2000::CANGetFrame(unsigned long &id,
                            unsigned char &len, unsigned char *buf) {
   if (packets_.size() == 0) {
     return false;
@@ -78,7 +78,7 @@ NAN_METHOD(NodeNmea2000::New) {
 
   v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(info[0]); 
   if (array->Length() > 0) {
-    zis->nmea2000_.SetDeviceCount(array->Length());
+    zis->SetDeviceCount(array->Length());
 
     for (int i = 0; i < array->Length(); ++i) {
       auto entry = array->Get(i);
@@ -90,7 +90,7 @@ NAN_METHOD(NodeNmea2000::New) {
       std::string softwareVersion(strOrDefault(obj, "softwareVersion", ""));
       std::string modelVersion(strOrDefault(obj, "modelVersion", ""));
 
-      zis->nmea2000_.SetProductInformation(
+      zis->SetProductInformation(
           serialCode.c_str(),
           intOrDefault(obj, "productCode", 0),
           model.c_str(),
@@ -101,7 +101,7 @@ NAN_METHOD(NodeNmea2000::New) {
           intOrDefault(obj, "certificationLevel", 0xff),
           i
         );
-      zis->nmea2000_.SetDeviceInformation(
+      zis->SetDeviceInformation(
           intOrDefault(obj, "uniqueNumber",  0),
           intOrDefault(obj, "deviceFunction", 0xff),
           intOrDefault(obj, "deviceClass", 0xff),
@@ -114,7 +114,7 @@ NAN_METHOD(NodeNmea2000::New) {
   }
   // For now NMEA2000 lib only support specifying the source
   // for the 1set device... TODO: set it for all devices.
-  zis->nmea2000_.SetMode(tNMEA2000::N2km_ListenAndNode, source);
+  zis->SetMode(tNMEA2000::N2km_ListenAndNode, source);
 
   info.GetReturnValue().Set(info.This());
 }
@@ -136,7 +136,8 @@ NAN_METHOD(NodeNmea2000::pushCanFrame) {
   packet.length = node::Buffer::Length(dataArg->ToObject());
   memcpy(packet.data, node::Buffer::Data(dataArg->ToObject()), packet.length);
 
-  zis->nmea2000_.pushPacket(packet);
+  zis->packets_.push_back(packet);
+  zis->ParseMessages();
 }
 
 NAN_METHOD(NodeNmea2000::setSendCanFrame) {
@@ -179,13 +180,13 @@ bool NodeNmea2000::sendFrame(unsigned long id, unsigned char len,
 NAN_METHOD(NodeNmea2000::open) {
   NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
   CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
-  zis->nmea2000_.Open();
+  zis->Open();
 }
 
 NAN_METHOD(NodeNmea2000::parseMessages) {
   NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
   CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
-  zis->nmea2000_.ParseMessages();
+  zis->ParseMessages();
 }
 
 void InitAll(v8::Local<v8::Object> exports)
